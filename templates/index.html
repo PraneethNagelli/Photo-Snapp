@@ -1,0 +1,123 @@
+{% extends 'base.html' %}
+
+{% block head %}
+    <title>Display Webcam Stream</title>
+
+    <style>
+    #container {
+        margin: 30px auto;
+        width: 640px;
+        height: 480px;
+        border: 10px DodgerBlue solid;
+        border-radius: 25px;
+        box-sizing: content-box;
+    }
+    #videoElement {
+        width: 640px;
+        height: 480px;
+        background-color: LightGray;
+        border-radius: 15px;
+        box-sizing: content-box;
+    }
+    button {
+      margin: 20px;
+    }
+
+    #canvas {
+      padding: 5px;
+      background-color: white;
+      border: 5px solid black;
+    }
+
+    </style>
+{% endblock %}
+{% block body %}
+<nav class="navbar navbar-light" style="background-color: #e3f2fd;">
+  <a class="navbar-brand" href="/">
+    <img src="https://svgshare.com/i/nd7.svg" width="30" height="30" class="d-inline-block align-top" alt="">
+    Photo Snapp
+  </a>
+</nav>
+<div id="container">
+	<video autoplay="true" id="videoElement">
+
+	</video>
+</div>
+<div class="d-flex justify-content-center">
+    <button id="start" type="button" class="btn btn-success btn-lg" onclick="start()">Start Video</button>
+    <button id="stop" type="button" class="btn btn-danger btn-lg" onclick="stop()">Stop Video</button>
+    <button id="snap" type="button" class="btn btn-info btn-lg" data-toggle="modal" data-target="#exampleModalCenter" onclick="snap()">Snap Photo</button>
+</div>
+<!-- Modal -->
+<div class="modal fade bd-example-modal-lg" id="exampleModalCenter" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLongTitle">Download Image</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+          <div class="d-flex justify-content-center">
+              <canvas id="canvas" width="640" height="480"></canvas>
+          </div>
+      </div>
+      <div class="modal-footer">
+<!--        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>-->
+        <a class="btn btn-secondary" data-dismiss="modal">Close</a>
+        <a class="btn btn-primary" id="download" href="" download="Snap.png" role="button">Download</a>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+var video = document.querySelector("#videoElement");
+var download = document.querySelector("#download");
+
+var isrunning = 0;
+start();
+function stop() {
+  if(isrunning){
+      var stream = video.srcObject;
+      var tracks = stream.getTracks();
+
+      for (var i = 0; i < tracks.length; i++) {
+        var track = tracks[i];
+        track.stop();
+      }
+
+      video.srcObject = null;
+      isrunning = 0;
+  }
+}
+
+function snap() {
+    var canvas=document.querySelector('canvas');
+    var context=canvas.getContext('2d');
+    context.fillRect(0,0,640,480);
+    context.drawImage(video,0,0,640,480);
+    download.setAttribute("href",canvas.toDataURL());
+    download.setAttribute("download",'snap.png');
+    console.log(canvas.toDataURL());
+}
+
+function start() {
+  if(isrunning){
+    return
+  }
+  if (navigator.mediaDevices.getUserMedia) {
+  navigator.mediaDevices.getUserMedia({ video: true })
+    .then(function (stream) {
+      video.srcObject = stream;
+      isrunning = 1;
+    })
+    .catch(function (err0r) {
+      console.log("Something went wrong!");
+    });
+  }
+}
+
+</script>
+{% endblock %}
+
